@@ -26,8 +26,8 @@
                 body: JSON.stringify({ message, pattern: 'single', truth_box: true })
             });
             const data = await response.json();
-            addMessage(data.response, false);
-            document.getElementById('status').textContent = 'Ready';
+addMessage(data.response, false);
+speakResponse(data.response);
         } catch (error) {
             addMessage('Error: ' + error.message, false);
             document.getElementById('status').textContent = 'Error';
