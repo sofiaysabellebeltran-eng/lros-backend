@@ -1,0 +1,57 @@
+<script>
+    const API_URL = 'https://lros-backend-slgg.onrender.com/api/chat';
+
+    function addMessage(text, isUser) {
+        const chatBox = document.getElementById('chatBox');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+        messageDiv.textContent = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        input.value = '';
+        document.getElementById('status').textContent = 'Thinking...';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, pattern: 'single', truth_box: true })
+            });
+            const data = await response.json();
+            addMessage(data.response, false);
+            document.getElementById('status').textContent = 'Ready';
+        } catch (error) {
+            addMessage('Error: ' + error.message, false);
+            document.getElementById('status').textContent = 'Error';
+        }
+    }
+
+    function startVoice() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Voice recognition not supported. Try Chrome.');
+            return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        document.getElementById('status').textContent = 'Listening...';
+        recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            document.getElementById('messageInput').value = text;
+            document.getElementById('status').textContent = 'Processing...';
+            sendMessage();
+        };
+        recognition.onerror = function() {
+            document.getElementById('status').textContent = 'Try again';
+        };
+        recognition.start();
+    }
+</script>
